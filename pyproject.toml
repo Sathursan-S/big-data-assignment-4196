@@ -1,0 +1,10 @@
+[project]
+name = "big-data-assignment-4196"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "confluent-kafka>=2.12.2",
+    "fastavro>=1.12.1",
+]
