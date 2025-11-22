@@ -12,7 +12,7 @@ def setup_logger(
     name: str = __name__,
     level: int = logging.INFO,
     format_string: Optional[str] = None,
-    stream: Optional[object] = None
+    stream: Optional[object] = None,
 ) -> logging.Logger:
     """
     Set up and return a configured logger.

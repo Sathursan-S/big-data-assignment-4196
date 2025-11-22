@@ -5,6 +5,7 @@ Reads messages from the Dead Letter Queue for analysis and potential reprocessin
 
 import io
 import json
+import os
 from confluent_kafka import Consumer, KafkaError
 from fastavro import schemaless_reader
 from logger import get_logger
@@ -13,7 +14,8 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 # Load Avro schema
-with open("order.avsc", "r") as f:
+schema_path = os.path.join(os.path.dirname(__file__), "schema", "order.avsc")
+with open(schema_path, "r") as f:
     schema = json.load(f)
 
 # Consumer configuration for DLQ
@@ -29,6 +31,7 @@ consumer_config = {
 def deserialize_order(message_value: bytes):
     """Deserialize order from Avro bytes."""
     buffer = io.BytesIO(message_value)
+    # pyrefly: ignore [missing-argument]
     return schemaless_reader(buffer, schema)
 
 
@@ -82,8 +85,11 @@ def monitor_dlq():
 
                 logger.warning(
                     f"DLQ Message #{len(dlq_messages)}: "
+                    # pyrefly: ignore [bad-index, unsupported-operation]
                     f"OrderID={order['orderId']}, "
+                    # pyrefly: ignore [bad-index, unsupported-operation]
                     f"Product={order['product']}, "
+                    # pyrefly: ignore [bad-index, unsupported-operation]
                     f"Price=${order['price']:.2f}, "
                     f"Error='{error_msg}'"
                 )

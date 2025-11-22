@@ -5,6 +5,7 @@ Produces order messages with proper error handling, delivery callbacks, and moni
 
 import io
 import json
+import os
 import random
 import time
 from typing import Dict, Any
@@ -16,7 +17,8 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 # Load Avro schema
-with open("order.avsc", "r") as f:
+schema_path = os.path.join(os.path.dirname(__file__), "schema", "order.avsc")
+with open(schema_path, "r") as f:
     schema = json.load(f)
 
 # Producer configuration
@@ -49,7 +51,7 @@ def delivery_callback(err, msg):
         metrics["total_latency"] += latency
         logger.info(
             f"Message delivered to {msg.topic()} [{msg.partition()}] "
-            f"at offset {msg.offset()} (latency: {latency*1000:.2f}ms)"
+            f"at offset {msg.offset()} (latency: {latency * 1000:.2f}ms)"
         )
 
 
@@ -140,6 +142,7 @@ def produce_orders(count: int = 100, delay: float = 0.5):
         delay: Delay between messages in seconds
     """
     producer = Producer(producer_config)
+    logger.info("Kafka Producer started...")
     logger.info(f"Starting to produce {count} orders...")
 
     try:
@@ -204,7 +207,7 @@ def print_metrics():
     logger.info(f"Messages failed: {metrics['failed']}")
     if metrics["produced"] > 0:
         avg_latency = metrics["total_latency"] / metrics["produced"]
-        logger.info(f"Average latency: {avg_latency*1000:.2f}ms")
+        logger.info(f"Average latency: {avg_latency * 1000:.2f}ms")
     logger.info("=" * 60)
 
 
@@ -212,7 +215,7 @@ if __name__ == "__main__":
     import sys
 
     # Allow customizing number of messages
-    num_orders = int(sys.argv[1]) if len(sys.argv) > 1 else 100
-    message_delay = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
+    num_orders = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+    message_delay = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 
     produce_orders(count=num_orders, delay=message_delay)

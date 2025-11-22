@@ -11,6 +11,7 @@ Features:
 
 import io
 import json
+import os
 import time
 import signal
 import logging
@@ -23,7 +24,8 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 # Load Avro schema
-with open("./schema/order.avsc", "r") as f:
+schema_path = os.path.join(os.path.dirname(__file__), "schema", "order.avsc")
+with open(schema_path, "r") as f:
     schema = json.load(f)
 
 # Consumer configuration
@@ -80,7 +82,12 @@ def signal_handler(signum, frame):
 def deserialize_order(message_value: bytes) -> Dict[str, Any]:
     """Deserialize order from Avro bytes."""
     buffer = io.BytesIO(message_value)
-    return schemaless_reader(buffer, schema)
+    output = schemaless_reader(buffer, schema, reader_schema=schema)
+
+    if not isinstance(output, dict):
+        raise ValueError("Deserialized output is not a dictionary")
+
+    return output
 
 
 def serialize_order(order: Dict[str, Any]) -> bytes:
@@ -104,17 +111,11 @@ def process_order(order: Dict[str, Any]) -> bool:
     Raises:
         Exception: If processing fails
     """
-    # Simulate processing logic
-    # In real world, this could be:
-    # - Database insertion
-    # - API calls
-    # - Business logic validation
 
-    # Simulate 15% failure rate for demonstration
-    import random
+    # import random
 
-    if random.random() < 0.15:
-        raise Exception(f"Simulated processing failure for order {order['orderId']}")
+    # if random.random() < 0.15:
+    #     raise Exception(f"Simulated processing failure for order {order['orderId']}")
 
     # Simulate processing time
     time.sleep(0.1)
@@ -236,19 +237,24 @@ def process_with_retry(order: Dict[str, Any], dlq_producer: Producer) -> bool:
 
 def consume_orders():
     """Main consumer loop with comprehensive error handling."""
+    logger.info("Creating consumer and producer...")
     consumer = Consumer(consumer_config)
     dlq_producer = Producer(producer_config)
+    logger.info("Consumer and producer created successfully")
 
     # Register signal handlers for graceful shutdown
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
+    logger.info("Signal handlers registered")
 
     try:
         # Subscribe to orders topic
+        logger.info("Attempting to subscribe to orders topic...")
         consumer.subscribe(["orders"])
         logger.info("🚀 Consumer started, listening for orders...")
         logger.info(
-            f"Configuration: Max retries={MAX_RETRIES}, Initial backoff={INITIAL_BACKOFF}s"
+            f"Configuration: Max retries={MAX_RETRIES}, "
+            f"Initial backoff={INITIAL_BACKOFF}s"
         )
 
         while running:
