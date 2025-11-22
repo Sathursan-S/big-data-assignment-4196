@@ -17,15 +17,13 @@ import logging
 from typing import Dict, Any
 from confluent_kafka import Consumer, Producer, KafkaError, KafkaException
 from fastavro import schemaless_reader, schemaless_writer
+from logger import get_logger
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Load Avro schema
-with open("order.avsc", "r") as f:
+with open("./schema/order.avsc", "r") as f:
     schema = json.load(f)
 
 # Consumer configuration
