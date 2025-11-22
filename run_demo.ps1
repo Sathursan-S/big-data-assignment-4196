@@ -41,19 +41,19 @@ Write-Host "Terminal 2: Producer (generating 50 orders)" -ForegroundColor Green
 Write-Host "Terminal 3: DLQ Monitor (tracking failed messages)" -ForegroundColor Green
 
 # Start Consumer in new terminal
-Start-Process pwsh -ArgumentList "-NoExit", "-Command", "Write-Host 'CONSUMER - Processing Orders with Retry Logic' -ForegroundColor Green; uv run consumer.py"
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "Write-Host 'CONSUMER - Processing Orders with Retry Logic' -ForegroundColor Green; uv run .\src\consumer.py"
 
 # Wait a bit for consumer to start
 Start-Sleep -Seconds 2
 
 # Start Producer in new terminal
-Start-Process pwsh -ArgumentList "-NoExit", "-Command", "Write-Host 'PRODUCER - Generating Order Messages' -ForegroundColor Yellow; uv run producer.py 50 0.5"
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "Write-Host 'PRODUCER - Generating Order Messages' -ForegroundColor Yellow; uv run .\src\producer.py 50 1"
 
 # Wait for some messages to be produced
 Start-Sleep -Seconds 5
 
 # Start DLQ Monitor in new terminal
-Start-Process pwsh -ArgumentList "-NoExit", "-Command", "Write-Host 'DLQ MONITOR - Tracking Failed Messages' -ForegroundColor Red; Start-Sleep -Seconds 25; uv run dlq_consumer.py"
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "Write-Host 'DLQ MONITOR - Tracking Failed Messages' -ForegroundColor Red; Start-Sleep -Seconds 25; uv run .\src\dlq_consumer.py"
 
 Write-Host "`n✅ Demo started successfully!" -ForegroundColor Green
 Write-Host "`nWatch the terminals to see:" -ForegroundColor Cyan

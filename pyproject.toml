@@ -4,7 +4,20 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "confluent-kafka>=2.12.2",
-    "fastavro>=1.12.1",
-]
+dependencies = ["confluent-kafka>=2.12.2", "fastavro>=1.12.1"]
+
+[tool.uv]
+config-settings = { editable_mode = "compat" }
+
+[tool]
+
+[tool.pyrefly]
+project-includes = ["**/*.py*", "**/*.ipynb"]
+site-package-path = [".venv/Lib/site-packages"]
+
+[dependency-groups]
+dev = ["ruff>=0.14.6"]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["F401"]

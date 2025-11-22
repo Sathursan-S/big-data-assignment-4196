@@ -30,7 +30,7 @@ services:
       bash -c "
         /etc/confluent/docker/run &
         sleep 10
-        kafka-topics --create --topic orders --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1 --if-not-exists
+        kafka-topics --create --topic orders --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1 --if-not-exists
         kafka-topics --create --topic orders-dlq --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1 --if-not-exists
         wait
       "
