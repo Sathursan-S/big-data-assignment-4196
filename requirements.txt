@@ -1,0 +1,8 @@
+# Kafka Order Processing System
+# Python package requirements
+
+# Kafka client library
+confluent-kafka>=2.12.2
+
+# Fast Avro serialization
+fastavro>=1.12.1

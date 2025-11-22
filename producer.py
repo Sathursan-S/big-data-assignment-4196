@@ -58,6 +58,55 @@ def delivery_callback(err, msg):
 
 def serialize_order(order: Dict[str, Any]) -> bytes:
     """Serialize order using Avro schema."""
+    # Randomly corrupt messages to simulate DLQ scenarios
+    if random.random() < 0.15:  # 15% chance of corruption
+        logger.warning(
+            f"🔥 Intentionally corrupting message for order {order['orderId']} to simulate DLQ"
+        )
+        # Corrupt the data in various ways
+        corruption_type = random.choice(
+            ["invalid_schema", "truncated_data", "invalid_utf8", "wrong_data_type"]
+        )
+
+        if corruption_type == "invalid_schema":
+            # Create data that doesn't match the schema
+            corrupted_order = {
+                "orderId": order["orderId"],
+                "product": order["product"],
+                "price": "not_a_number",  # Invalid price type
+                "extra_field": "should_not_be_here",  # Extra field
+            }
+            output = io.BytesIO()
+            schemaless_writer(output, schema, corrupted_order)
+            return output.getvalue()
+
+        elif corruption_type == "truncated_data":
+            # Serialize normally then truncate
+            output = io.BytesIO()
+            schemaless_writer(output, schema, order)
+            data = output.getvalue()
+            # Truncate to random length
+            truncated_length = random.randint(1, len(data) - 1)
+            return data[:truncated_length]
+
+        elif corruption_type == "invalid_utf8":
+            # Corrupt UTF-8 encoding
+            output = io.BytesIO()
+            schemaless_writer(output, schema, order)
+            data = output.getvalue()
+            # Flip some bytes to create invalid UTF-8
+            if len(data) > 10:
+                corrupted_data = bytearray(data)
+                for i in random.sample(range(len(data)), min(5, len(data))):
+                    corrupted_data[i] = (corrupted_data[i] + 128) % 256
+                return bytes(corrupted_data)
+            return data
+
+        else:  # wrong_data_type
+            # Put wrong data type in the stream
+            return b"This is not Avro data at all!"
+
+    # Normal serialization
     output = io.BytesIO()
     schemaless_writer(output, schema, order)
     return output.getvalue()
