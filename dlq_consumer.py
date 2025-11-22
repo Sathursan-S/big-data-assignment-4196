@@ -46,7 +46,7 @@ def monitor_dlq():
     
     try:
         while True:
-            msg = consumer.poll(timeout=2.0)
+            msg = consumer.poll(timeout=0.5)
             
             if msg is None:
                 if dlq_messages:

@@ -282,8 +282,30 @@ def consume_orders():
                     consumer.commit(asynchronous=False)
 
             except Exception as e:
+                # Handle deserialization or processing errors
                 logger.error(f"Error deserializing/processing message: {e}")
                 metrics["failed"] += 1
+
+                # Try to send corrupted message to DLQ
+                try:
+                    # Create a minimal order object for DLQ with raw message data
+                    corrupted_order = {
+                        "orderId": "CORRUPTED-MESSAGE",
+                        "product": "Unknown",
+                        "price": 0.0,
+                    }
+
+                    # Send to DLQ with the actual error
+                    send_to_dlq(
+                        dlq_producer,
+                        corrupted_order,
+                        f"Deserialization/Processing failed: {str(e)}",
+                    )
+                except Exception as dlq_error:
+                    logger.error(
+                        f"Failed to send corrupted message to DLQ: {dlq_error}"
+                    )
+
                 # Still commit to avoid getting stuck on bad messages
                 consumer.commit(asynchronous=False)
 
